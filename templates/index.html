@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>S-box44 Cryptographic Analysis</title>
+</head>
+<body>
+    <h1>Pengujian Kriptografi S-box44</h1>
+
+    <h2>Modul 1 – 10 Pengujian S-box</h2>
+    <ul>
+        {% for k, v in results.items() %}
+            <li>{{ k }} : {{ v }}</li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h2>Modul 2 – Enkripsi AES-like dengan S-box44</h2>
+
+    <form method="POST">
+        <label>Plaintext:</label><br>
+        <textarea name="plaintext" rows="3" cols="40">{{ plaintext }}</textarea><br><br>
+
+        <label>Key (AES-128):</label><br>
+        <input type="text" name="key" value="{{ key }}"><br><br>
+
+        <button type="submit">Encrypt</button>
+    </form>
+
+    {% if ciphertext %}
+        <h3>Hasil Ciphertext</h3>
+        <pre>{{ ciphertext }}</pre>
+    {% endif %}
+</body>
+</html>
