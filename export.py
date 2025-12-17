@@ -2,6 +2,21 @@ from openpyxl import Workbook
 from openpyxl.styles import Font
 
 
+# ================= SANITIZER =================
+def sanitize_excel(value):
+    """
+    Remove illegal Excel characters (ASCII < 32).
+    Convert bytes to hex string.
+    """
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        value = value.hex()
+    value = str(value)
+    return "".join(c for c in value if ord(c) >= 32)
+
+
+# ================= EXPORT FUNCTION =================
 def export_to_excel(
     filename,
     affine_matrix,
@@ -32,11 +47,10 @@ def export_to_excel(
     for i, (k, v) in enumerate(meta, start=1):
         ws[f"A{i}"] = k
         ws[f"A{i}"].font = bold
-        ws[f"B{i}"] = v
+        ws[f"B{i}"] = sanitize_excel(v)
 
     # ================= Sheet 2 : S-box =================
     ws = wb.create_sheet("S-box")
-
     ws["A1"] = "S-box"
     ws["A1"].font = bold
 
@@ -46,7 +60,11 @@ def export_to_excel(
 
     for r in range(16):
         for c in range(16):
-            ws.cell(row=r+3, column=c+2, value=f"{sbox[r*16+c]:02X}")
+            ws.cell(
+                row=r+3,
+                column=c+2,
+                value=f"{sbox[r*16 + c]:02X}"
+            )
 
     # ================= Sheet 3 : Encrypt Trace =================
     ws = wb.create_sheet("Encrypt Trace")
@@ -67,7 +85,11 @@ def export_to_excel(
 
             for r in state:
                 for c, v in enumerate(r):
-                    ws.cell(row=row, column=c+1, value=v)
+                    ws.cell(
+                        row=row,
+                        column=c+1,
+                        value=sanitize_excel(v)
+                    )
                 row += 1
             row += 1
         row += 1
@@ -91,20 +113,24 @@ def export_to_excel(
 
             for r in state:
                 for c, v in enumerate(r):
-                    ws.cell(row=row, column=c+1, value=v)
+                    ws.cell(
+                        row=row,
+                        column=c+1,
+                        value=sanitize_excel(v)
+                    )
                 row += 1
             row += 1
         row += 1
 
     # ================= Sheet 5 : Crypto Tests =================
     ws = wb.create_sheet("Crypto Tests")
-
     ws["A1"] = "Metric"
     ws["B1"] = "Value"
     ws["A1"].font = ws["B1"].font = bold
 
     for i, (k, v) in enumerate(crypto_result.items(), start=2):
         ws[f"A{i}"] = k
-        ws[f"B{i}"] = v
+        ws[f"B{i}"] = sanitize_excel(v)
 
+    # ================= SAVE =================
     wb.save(filename)

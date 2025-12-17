@@ -38,6 +38,13 @@ pre {
     padding: 15px;
     font-family: monospace;
 }
+.notice {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    padding: 12px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
 hr {
     margin: 40px 0;
 }
@@ -66,14 +73,15 @@ hr {
 <hr>
 <h3>Result</h3>
 
-<a href="/download">
-    <button style="margin-bottom:20px;">
-        ⬇ Download Result (Excel)
-    </button>
-</a>
+<div class="notice">
+<b>Note:</b><br>
+Some internal AES states may contain non-printable (illegal) characters.
+These characters are <b>automatically ignored during Excel export</b> to ensure
+file compatibility and prevent export errors.
+</div>
 
 <pre>
-AES Key (HEX):
+AES Key Generated (HEX):
 {{ result.Key }}
 
 Plaintext:
@@ -85,17 +93,24 @@ Ciphertext (HEX):
 Decrypted Plaintext:
 {{ result.Decrypted }}
 
-Nonlinearity (NL)        : {{ result.NL }}
-Strict Avalanche (SAC)  : {{ result.SAC }}
-BIC – Nonlinearity      : {{ result.BIC_NL }}
-BIC – SAC               : {{ result.BIC_SAC }}
-Linear Approximation    : {{ result.LAP }}
-Differential Approx.    : {{ result.DAP }}
-Differential Uniformity : {{ result.DU }}
-Algebraic Degree (AD)   : {{ result.AD }}
-Transparency Order (TO): {{ result.TO }}
-Correlation Immunity    : {{ result.CI }}
+Nonlinearity (NL)                : {{ result.NL }}
+Strict Avalanche (SAC)           : {{ result.SAC }}
+BIC – Nonlinearity (BIC_NL)      : {{ result.BIC_NL }}
+BIC – Strict Avalanche (BIC_SAC) : {{ result.BIC_SAC }}
+Linear Approximation (LAP)       : {{ result.LAP }}
+Differential Approximation (DAP) : {{ result.DAP }}
+Differential Uniformity (DU)     : {{ result.DU }}
+Algebraic Degree (AD)            : {{ result.AD }}
+Transparency Order (TO)          : {{ result.TO }}
+Correlation Immunity (CI)        : {{ result.CI }}
 </pre>
+
+<a href="/download">
+    <button style="margin-bottom:20px;">
+        ⬇ Download Result (Excel)
+    </button>
+</a>
+
 {% endif %}
 
 {% if sbox_table %}
