@@ -4,9 +4,31 @@
     <meta charset="UTF-8">
     <title>AES S-box Affine Matrix</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        select, input, button { padding: 8px; margin: 5px 0; }
-        pre { background: #f4f4f4; padding: 15px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        select, input, button {
+            padding: 8px;
+            margin: 5px 0;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 6px;
+            text-align: center;
+            font-family: monospace;
+        }
+        th {
+            background-color: #eaeaea;
+        }
     </style>
 </head>
 <body>
@@ -29,18 +51,41 @@
 
 {% if result %}
 <hr>
+
+<!-- ================= S-BOX ================= -->
+<h3>Generated S-box (Hexadecimal)</h3>
+
+<table>
+    <tr>
+        <th></th>
+        {% for i in range(16) %}
+            <th>{{ "%X"|format(i) }}</th>
+        {% endfor %}
+    </tr>
+
+    {% for row in range(16) %}
+    <tr>
+        <th>{{ "%X"|format(row) }}</th>
+        {% for col in range(16) %}
+            <td>{{ sbox_table[row][col] }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+
+<!-- ================= TEST RESULTS ================= -->
 <h3>Cryptographic Test Results</h3>
 <pre>
-Nonlinearity (NL)          : {{ result.NL }}
-Strict Avalanche (SAC)    : {{ result.SAC }}
-BIC - Nonlinearity        : {{ result['BIC-NL'] }}
-BIC - Strict Avalanche    : {{ result['BIC-SAC'] }}
-Linear Approx. (LAP)      : {{ result.LAP }}
-Differential Approx. (DAP): {{ result.DAP }}
-Differential Uniformity   : {{ result.DU }}
-Algebraic Degree (AD)     : {{ result.AD }}
-Transparency Order (TO)  : {{ result.TO }}
-Correlation Immunity (CI): {{ result.CI }}
+Nonlinearity (NL)           : {{ result.NL }}
+Strict Avalanche (SAC)     : {{ result.SAC }}
+BIC - Nonlinearity (BIC-NL): {{ result.BIC_NL }}
+BIC - Strict Avalanche     : {{ result.BIC_SAC }}
+Linear Approx. (LAP)       : {{ result.LAP }}
+Differential Approx. (DAP) : {{ result.DAP }}
+Differential Uniformity    : {{ result.DU }}
+Algebraic Degree (AD)      : {{ result.AD }}
+Transparency Order (TO)   : {{ result.TO }}
+Correlation Immunity (CI) : {{ result.CI }}
 
 Ciphertext (hex):
 {{ result.Ciphertext }}
@@ -48,6 +93,7 @@ Ciphertext (hex):
 Decrypted Text:
 {{ result.Decrypted }}
 </pre>
+
 {% endif %}
 
 </body>
