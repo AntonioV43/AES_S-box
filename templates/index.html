@@ -1,99 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>AES S-box Affine Matrix</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-        }
-        select, input, button {
-            padding: 8px;
-            margin: 5px 0;
-        }
-        pre {
-            background: #f4f4f4;
-            padding: 15px;
-        }
-        table {
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            border: 1px solid #444;
-            padding: 6px;
-            text-align: center;
-            font-family: monospace;
-        }
-        th {
-            background-color: #eaeaea;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>AES-128 Custom S-box (Affine Matrix)</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+}
+h2, h3, h4 {
+    margin-top: 30px;
+}
+select, input, button {
+    padding: 8px;
+    margin-top: 8px;
+    width: 420px;
+}
+button {
+    width: 420px;
+}
+table {
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+td, th {
+    border: 1px solid #333;
+    padding: 6px;
+    text-align: center;
+    font-family: monospace;
+}
+th {
+    background-color: #eee;
+}
+pre {
+    background: #f4f4f4;
+    padding: 15px;
+    font-family: monospace;
+}
+hr {
+    margin: 40px 0;
+}
+</style>
 </head>
+
 <body>
 
-<h2>AES S-box Affine Matrix Exploration</h2>
+<h2>AES-128 Custom S-box Using Affine Matrix</h2>
 
 <form method="post">
-    <label>Affine Matrix:</label><br>
+    <label><b>Affine Matrix</b></label><br>
     <select name="matrix" required>
         {% for k in matrices %}
             <option value="{{ k }}">{{ k }}</option>
         {% endfor %}
-    </select><br>
+    </select><br><br>
 
-    <label>Plaintext:</label><br>
-    <input type="text" name="plaintext" placeholder="Masukkan plaintext" required><br>
+    <label><b>Plaintext</b></label><br>
+    <input type="text" name="plaintext" placeholder="Enter plaintext" required><br><br>
 
-    <button type="submit">Generate & Encrypt</button>
+    <button type="submit">Generate, Encrypt & Decrypt</button>
 </form>
 
 {% if result %}
 <hr>
+<h3>Result</h3>
 
-<!-- ================= S-BOX ================= -->
-<h3>Generated S-box (Hexadecimal)</h3>
+<a href="/download">
+    <button style="margin-bottom:20px;">
+        ⬇ Download Result (Excel)
+    </button>
+</a>
 
-<table>
-    <tr>
-        <th></th>
-        {% for i in range(16) %}
-            <th>{{ "%X"|format(i) }}</th>
-        {% endfor %}
-    </tr>
-
-    {% for row in range(16) %}
-    <tr>
-        <th>{{ "%X"|format(row) }}</th>
-        {% for col in range(16) %}
-            <td>{{ sbox_table[row][col] }}</td>
-        {% endfor %}
-    </tr>
-    {% endfor %}
-</table>
-
-<!-- ================= TEST RESULTS ================= -->
-<h3>Cryptographic Test Results</h3>
 <pre>
-Nonlinearity (NL)           : {{ result.NL }}
-Strict Avalanche (SAC)     : {{ result.SAC }}
-BIC - Nonlinearity (BIC-NL): {{ result.BIC_NL }}
-BIC - Strict Avalanche     : {{ result.BIC_SAC }}
-Linear Approx. (LAP)       : {{ result.LAP }}
-Differential Approx. (DAP) : {{ result.DAP }}
-Differential Uniformity    : {{ result.DU }}
-Algebraic Degree (AD)      : {{ result.AD }}
-Transparency Order (TO)   : {{ result.TO }}
-Correlation Immunity (CI) : {{ result.CI }}
+AES Key (HEX):
+{{ result.Key }}
 
-Ciphertext (hex):
+Plaintext:
+{{ result.Plaintext }}
+
+Ciphertext (HEX):
 {{ result.Ciphertext }}
 
-Decrypted Text:
+Decrypted Plaintext:
 {{ result.Decrypted }}
-</pre>
 
+Nonlinearity (NL)        : {{ result.NL }}
+Strict Avalanche (SAC)  : {{ result.SAC }}
+BIC – Nonlinearity      : {{ result.BIC_NL }}
+BIC – SAC               : {{ result.BIC_SAC }}
+Linear Approximation    : {{ result.LAP }}
+Differential Approx.    : {{ result.DAP }}
+Differential Uniformity : {{ result.DU }}
+Algebraic Degree (AD)   : {{ result.AD }}
+Transparency Order (TO): {{ result.TO }}
+Correlation Immunity    : {{ result.CI }}
+</pre>
+{% endif %}
+
+{% if sbox_table %}
+<hr>
+<h3>Generated S-box</h3>
+<table>
+<tr>
+    <th></th>
+    {% for i in range(16) %}<th>{{ "%X"|format(i) }}</th>{% endfor %}
+</tr>
+{% for r in range(16) %}
+<tr>
+    <th>{{ "%X"|format(r) }}</th>
+    {% for c in range(16) %}<td>{{ sbox_table[r][c] }}</td>{% endfor %}
+</tr>
+{% endfor %}
+</table>
+{% endif %}
+
+{% if enc_trace %}
+<hr>
+<h3>AES Encryption Trace (Round 0 – 10)</h3>
+{% for r in enc_trace %}
+<h4>Round {{ r.round }}</h4>
+{% for step, state in r.items() if step != "round" %}
+<b>{{ step }}</b>
+<table>
+{% for row in state %}
+<tr>{% for v in row %}<td>{{ v }}</td>{% endfor %}</tr>
+{% endfor %}
+</table>
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+{% if dec_trace %}
+<hr>
+<h3>AES Decryption Trace (Round 10 – 0)</h3>
+{% for r in dec_trace %}
+<h4>Round {{ r.round }}</h4>
+{% for step, state in r.items() if step != "round" %}
+<b>{{ step }}</b>
+<table>
+{% for row in state %}
+<tr>{% for v in row %}<td>{{ v }}</td>{% endfor %}</tr>
+{% endfor %}
+</table>
+{% endfor %}
+{% endfor %}
 {% endif %}
 
 </body>

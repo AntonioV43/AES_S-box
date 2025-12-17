@@ -12,7 +12,11 @@ project/
 ├── crypto_tests.py     # Cryptography Testing
 ├── encryption.py       # Encrypt / Decrypt
 ├── requirements.txt    # Python Dependencies 
+├── export.py           # Export to Excel
+├── templates
+│       └── index.html  # Styling
 └── README.md           # Documentation
+
 ```
 
 ## Instalasi
