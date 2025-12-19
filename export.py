@@ -25,6 +25,7 @@ def export_to_excel(
     ciphertext_hex,
     decrypted,
     sbox,
+    inv_sbox,
     enc_trace,
     dec_trace,
     crypto_result
@@ -51,7 +52,7 @@ def export_to_excel(
 
     # ================= Sheet 2 : S-box =================
     ws = wb.create_sheet("S-box")
-    ws["A1"] = "S-box"
+    ws["A1"] = "Forward S-box"
     ws["A1"].font = bold
 
     for i in range(16):
@@ -66,7 +67,26 @@ def export_to_excel(
                 value=f"{sbox[r*16 + c]:02X}"
             )
 
-    # ================= Sheet 3 : Encrypt Trace =================
+    # ================= Sheet 3 : Inverse S-box =================
+    ws = wb.create_sheet("Inverse S-box")
+    ws["A1"] = "Inverse S-box"
+    ws["A1"].font = bold
+
+    # Header baris dan kolom (0-F)
+    for i in range(16):
+        ws.cell(row=2, column=i+2, value=f"{i:X}").font = bold
+        ws.cell(row=i+3, column=1, value=f"{i:X}").font = bold
+
+    # Isi tabel 16x16
+    for r in range(16):
+        for c in range(16):
+            ws.cell(
+                row=r+3,
+                column=c+2,
+                value=f"{inv_sbox[r*16 + c]:02X}"
+            )
+
+    # ================= Sheet 4 : Encrypt Trace =================
     ws = wb.create_sheet("Encrypt Trace")
     row = 1
 
@@ -94,7 +114,7 @@ def export_to_excel(
             row += 1
         row += 1
 
-    # ================= Sheet 4 : Decrypt Trace =================
+    # ================= Sheet 5 : Decrypt Trace =================
     ws = wb.create_sheet("Decrypt Trace")
     row = 1
 
@@ -122,7 +142,7 @@ def export_to_excel(
             row += 1
         row += 1
 
-    # ================= Sheet 5 : Crypto Tests =================
+    # ================= Sheet 6 : Crypto Tests =================
     ws = wb.create_sheet("Crypto Tests")
     ws["A1"] = "Metric"
     ws["B1"] = "Value"

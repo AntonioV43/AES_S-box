@@ -104,6 +104,7 @@ def index():
             ciphertext_hex=ciphertext.hex(),
             decrypted=result["Decrypted"],
             sbox=sbox,
+            inv_sbox=inv_sbox,
             enc_trace=enc_trace,
             dec_trace=dec_trace,
             crypto_result=crypto_result
