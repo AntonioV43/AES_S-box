@@ -26,7 +26,7 @@ def cleanup_export_file():
         except Exception as e:
             print("Cleanup error:", e)
 
-# Cleanup at app start (remove leftover file)
+# Cleanup at app start
 cleanup_export_file()
 
 # Cleanup at normal app exit
@@ -37,6 +37,7 @@ atexit.register(cleanup_export_file)
 def index():
     result = None
     sbox_table = None
+    inv_sbox_table = None
     enc_trace = None
     dec_trace = None
 
@@ -44,24 +45,34 @@ def index():
         matrix = request.form["matrix"]
         plaintext = request.form["plaintext"]
 
-        # ---- Generate S-box & Key ----
+        # ---- 1. Generate S-box ----
         sbox = generate_sbox(matrix)
-        key = generate_key()
 
-        # ---- Prepare Plaintext (1 AES block) ----
+        # ---- 2. Generate Inverse S-box ----
+        inv_sbox = [0] * 256
+        for i in range(256):
+            inv_sbox[sbox[i]] = i
+
+        # ---- 3. Key & Encryption ----
+        key = generate_key()
         pt = plaintext.encode().ljust(16, b'\x00')
 
-        # ---- Encrypt & Decrypt with Trace ----
+        # Encrypt & Decrypt with Trace
         ciphertext, enc_trace = aes_encrypt_trace(pt, key, sbox)
         decrypted, dec_trace = aes_decrypt_trace(ciphertext, key, sbox)
 
-        # ---- Build S-box Table ----
+        # ---- 4. Build Tables (16x16) for Frontend ----
         sbox_table = [
             [f"{sbox[r * 16 + c]:02X}" for c in range(16)]
             for r in range(16)
         ]
+        
+        inv_sbox_table = [
+            [f"{inv_sbox[r * 16 + c]:02X}" for c in range(16)]
+            for r in range(16)
+        ]
 
-        # ---- Cryptographic Tests ----
+        # ---- 5. Cryptographic Tests ----
         crypto_result = {
             "NL": nonlinearity(sbox),
             "SAC": sac(sbox),
@@ -75,7 +86,7 @@ def index():
             "CI": correlation_immunity(sbox),
         }
 
-        # ---- Result Object ----
+        # ---- 6. Result Object ----
         result = {
             "Key": key.hex(),
             "Plaintext": plaintext,
@@ -84,7 +95,7 @@ def index():
             **crypto_result
         }
 
-        # ---- Export Excel (TEMP FILE) ----
+        # ---- 7. Export Excel ----
         export_to_excel(
             filename=EXPORT_FILE,
             affine_matrix=matrix,
@@ -103,6 +114,7 @@ def index():
         matrices=["K4", "K44", "K81", "K111", "K128"],
         result=result,
         sbox_table=sbox_table,
+        inv_sbox_table=inv_sbox_table,
         enc_trace=enc_trace,
         dec_trace=dec_trace
     )

@@ -1,98 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AES-128 Custom S-box (Affine Matrix)</title>
-
-<style>
-body {
-    font-family: Arial, sans-serif;
-    margin: 40px;
-}
-h2, h3, h4 {
-    margin-top: 30px;
-}
-select, input, button {
-    padding: 8px;
-    margin-top: 8px;
-    width: 420px;
-}
-button {
-    width: 420px;
-}
-table {
-    border-collapse: collapse;
-    margin-bottom: 15px;
-}
-td, th {
-    border: 1px solid #333;
-    padding: 6px;
-    text-align: center;
-    font-family: monospace;
-}
-th {
-    background-color: #eee;
-}
-pre {
-    background: #f4f4f4;
-    padding: 15px;
-    font-family: monospace;
-}
-.notice {
-    background: #fff3cd;
-    border: 1px solid #ffeeba;
-    padding: 12px;
-    margin-bottom: 20px;
-    font-size: 14px;
-}
-hr {
-    margin: 40px 0;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>AES-128 Custom S-box (Affine Matrix)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        h2, h3, h4 { margin-top: 30px; color: #333; }
+        select, input, button { padding: 8px; margin-top: 8px; width: 420px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        table { border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+        td, th { border: 1px solid #333; padding: 5px; text-align: center; font-family: monospace; min-width: 30px; }
+        th { background-color: #eee; }
+        pre { background: #f4f4f4; padding: 15px; border-left: 5px solid #007bff; overflow-x: auto; }
+        .notice { background: #fff3cd; border: 1px solid #ffeeba; padding: 12px; margin-bottom: 20px; font-size: 14px; }
+        hr { border: 0; border-top: 1px solid #ddd; margin: 40px 0; }
+        .grid-container { display: flex; flex-wrap: wrap; gap: 50px; }
+    </style>
 </head>
-
 <body>
 
 <h2>AES-128 Custom S-box Using Affine Matrix</h2>
 
 <form method="post">
-    <label><b>Affine Matrix</b></label><br>
+    <label><b>Affine Matrix Selection</b></label><br>
     <select name="matrix" required>
         {% for k in matrices %}
             <option value="{{ k }}">{{ k }}</option>
         {% endfor %}
     </select><br><br>
 
-    <label><b>Plaintext</b></label><br>
-    <input type="text" name="plaintext" placeholder="Enter plaintext" required><br><br>
+    <label><b>Plaintext Input</b></label><br>
+    <input type="text" name="plaintext" placeholder="Enter text to encrypt" required><br><br>
 
     <button type="submit">Generate, Encrypt & Decrypt</button>
 </form>
 
 {% if result %}
 <hr>
-<h3>Result</h3>
+<h3>Results & Analysis</h3>
 
 <div class="notice">
-<b>Note:</b><br>
-Some internal AES states may contain non-printable (illegal) characters.
-These characters are <b>automatically ignored during Excel export</b> to ensure
-file compatibility and prevent export errors.
+    <b>Info:</b> Some hex characters might not be displayable as text. The Excel export handles these cases safely.
 </div>
 
 <pre>
-AES Key Generated (HEX):
-{{ result.Key }}
+<b>AES Key (Hex):</b> {{ result.Key }}
+<b>Plaintext:</b>   {{ result.Plaintext }}
+<b>Ciphertext:</b>  {{ result.Ciphertext }}
+<b>Decrypted:</b>   {{ result.Decrypted }}
 
-Plaintext:
-{{ result.Plaintext }}
-
-Ciphertext (HEX):
-{{ result.Ciphertext }}
-
-Decrypted Plaintext:
-{{ result.Decrypted }}
-
+<b>--- Cryptographic Properties ---</b>
 Nonlinearity (NL)                : {{ result.NL }}
 Strict Avalanche (SAC)           : {{ result.SAC }}
 BIC – Nonlinearity (BIC_NL)      : {{ result.BIC_NL }}
@@ -106,59 +64,81 @@ Correlation Immunity (CI)        : {{ result.CI }}
 </pre>
 
 <a href="/download">
-    <button style="margin-bottom:20px;">
-        ⬇ Download Result (Excel)
-    </button>
+    <button style="background-color: #28a745;">⬇ Download Full Analysis (Excel)</button>
 </a>
 
-{% endif %}
+<div class="grid-container">
+    <div>
+        <h3>Forward S-box</h3>
+        <table>
+            <tr>
+                <th></th>
+                {% for i in range(16) %}<th>{{ "%X"|format(i) }}</th>{% endfor %}
+            </tr>
+            {% for r in range(16) %}
+            <tr>
+                <th>{{ "%X"|format(r) }}</th>
+                {% for c in range(16) %}<td>{{ sbox_table[r][c] }}</td>{% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
 
-{% if sbox_table %}
-<hr>
-<h3>Generated S-box</h3>
-<table>
-<tr>
-    <th></th>
-    {% for i in range(16) %}<th>{{ "%X"|format(i) }}</th>{% endfor %}
-</tr>
-{% for r in range(16) %}
-<tr>
-    <th>{{ "%X"|format(r) }}</th>
-    {% for c in range(16) %}<td>{{ sbox_table[r][c] }}</td>{% endfor %}
-</tr>
-{% endfor %}
-</table>
+    <div>
+        <h3>Inverse S-box</h3>
+        <table>
+            <tr>
+                <th></th>
+                {% for i in range(16) %}<th>{{ "%X"|format(i) }}</th>{% endfor %}
+            </tr>
+            {% for r in range(16) %}
+            <tr>
+                <th>{{ "%X"|format(r) }}</th>
+                {% for c in range(16) %}<td>{{ inv_sbox_table[r][c] }}</td>{% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
 {% endif %}
 
 {% if enc_trace %}
 <hr>
-<h3>AES Encryption Trace (Round 0 – 10)</h3>
+<h3>AES Encryption Trace</h3>
 {% for r in enc_trace %}
-<h4>Round {{ r.round }}</h4>
-{% for step, state in r.items() if step != "round" %}
-<b>{{ step }}</b>
-<table>
-{% for row in state %}
-<tr>{% for v in row %}<td>{{ v }}</td>{% endfor %}</tr>
-{% endfor %}
-</table>
-{% endfor %}
+    <h4>Round {{ r.round }}</h4>
+    <div style="display: flex; gap: 20px; overflow-x: auto;">
+    {% for step, state in r.items() if step != "round" %}
+        <div>
+            <small><b>{{ step }}</b></small>
+            <table>
+                {% for row in state %}
+                <tr>{% for v in row %}<td>{{ v }}</td>{% endfor %}</tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endfor %}
+    </div>
 {% endfor %}
 {% endif %}
 
 {% if dec_trace %}
 <hr>
-<h3>AES Decryption Trace (Round 10 – 0)</h3>
+<h3>AES Decryption Trace</h3>
 {% for r in dec_trace %}
-<h4>Round {{ r.round }}</h4>
-{% for step, state in r.items() if step != "round" %}
-<b>{{ step }}</b>
-<table>
-{% for row in state %}
-<tr>{% for v in row %}<td>{{ v }}</td>{% endfor %}</tr>
-{% endfor %}
-</table>
-{% endfor %}
+    <h4>Round {{ r.round }}</h4>
+    <div style="display: flex; gap: 20px; overflow-x: auto;">
+    {% for step, state in r.items() if step != "round" %}
+        <div>
+            <small><b>{{ step }}</b></small>
+            <table>
+                {% for row in state %}
+                <tr>{% for v in row %}<td>{{ v }}</td>{% endfor %}</tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endfor %}
+    </div>
 {% endfor %}
 {% endif %}
 
