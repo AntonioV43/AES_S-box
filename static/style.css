@@ -224,113 +224,121 @@ pre { background: #111; padding: 15px; border-left: 5px solid #00ff41; overflow-
 }
 .download-btn:active { transform: scale(0.95); box-shadow: 0 0 10px #00ffff; }
 /* ======================================================== */
-/* RESPONSIVE DESIGN (MOBILE FRIENDLY)                      */
+/* RESPONSIVE DESIGN (FIXED LAYOUT UNTUK HP)                */
 /* ======================================================== */
 
 @media screen and (max-width: 768px) {
-    
-    /* 1. CONTAINER UTAMA DIBUAT FLEKSIBEL */
     .main-container {
-        width: 95%; /* Jangan 1000px, tapi 95% layar */
+        width: 95%;
         margin: 20px auto;
         padding: 15px;
     }
 
-    /* 2. HERO SECTION */
     .hero-title {
-        font-size: 2.5rem; /* Kecilin judul */
+        font-size: 2rem;
         line-height: 1.2;
     }
+
     .hero-subtitle {
-        font-size: 1rem;
+        font-size: 0.9rem;
         padding: 0 10px;
     }
-    
-    /* 3. FITUR GRID JADI 1 KOLOM */
+
     .features-grid {
         flex-direction: column;
         align-items: center;
-    }
-    .feature-card {
-        width: 100%; /* Kartu jadi lebar penuh */
+        gap: 20px;
     }
 
-    /* 4. SLIDER TEAM (INI YANG SUSAH DI HP) */
-    .slider-container {
-        width: 95%; /* Lebar 95% */
-        height: 500px; /* Tinggi dikurangin */
+    .feature-card {
+        width: 90%;
     }
-    
+
+    .slider-container {
+        width: 95%;
+        height: 650px;
+        margin: 80px auto 50px;
+        overflow: hidden;
+    }
+
+    .static-team-header {
+        font-size: 2.5rem;
+        top: 20px;
+        width: 100%;
+    }
+
     .slide .item:nth-child(1),
     .slide .item:nth-child(2) {
-        /* Posisi Foto di HP */
-        top: 40%; 
-        left: 50%; /* Tengah */
-        width: 200px; 
-        height: 300px;
+        top: 50%;
+        left: 50%;
+        width: 220px;
+        height: 330px;
         transform: translate(-50%, -50%);
+        box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
     }
 
-    .item .visual {
-        width: 100%; height: 100%;
-        border-radius: 15px;
-    }
-
-    /* Teks Tim di HP (Pindah ke Bawah Foto) */
     .item .txt {
-        top: 75%; /* Turun ke bawah */
+        top: 85%;
         left: 50%;
         transform: translate(-50%, 0);
-        width: 90%;
+        width: 100%;
         text-align: center;
-        padding: 0;
+        padding: 0 10px;
     }
-    
-    .txt .name { font-size: 30px; }
-    .txt .des { font-size: 14px; margin-top: 5px; }
 
-    /* Tombol Navigasi Slider */
+    .txt .name {
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+
+    .txt .des {
+        font-size: 12px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 5px;
+        display: inline-block;
+        border-left: none;
+        border-bottom: 2px solid #00ff41;
+    }
+
     .button {
-        bottom: 20px;
+        bottom: 15px;
+        width: 100%;
+        justify-content: center;
+        gap: 20px;
     }
 
-    /* Gantungan Icarus (Sembunyikan di HP biar ga ribet/nutupin) */
     .hanging-icarus {
-        display: none; 
+        display: none;
     }
 
-    /* 5. TABLE & ENCRYPTION RESULT */
     pre {
-        font-size: 10px; /* Kecilin font log */
-        overflow-x: scroll; /* Biar bisa discroll samping */
-        white-space: pre-wrap; /* Bungkus teks panjang */
+        font-size: 9px;
+        overflow-x: scroll;
+        white-space: pre;
+        padding: 10px;
     }
 
     .grid-container {
-        flex-direction: column; /* Tabel S-box jadi atas bawah */
-    }
-    
-    .sbox-wrapper {
-        width: 100%;
-        overflow-x: auto; /* Scroll samping tabel */
-    }
-    
-    table {
-        font-size: 10px; /* Huruf tabel kecil */
-    }
-    
-    th, td {
-        padding: 2px;
+        flex-direction: column;
+        gap: 30px;
     }
 
-    /* 6. ROUND TRACE (TABEL KECIL) */
-    .step-wrapper {
-        flex-wrap: nowrap;
-        overflow-x: scroll; /* Biar bisa digeser */
-        justify-content: flex-start;
+    .sbox-wrapper {
+        width: 100%;
+        overflow-x: auto;
     }
-    .step-wrapper div {
-        min-width: 120px; /* Lebar minimum per step */
-        margin-right: 10px;
+
+    table {
+        font-size: 9px;
+        min-width: 300px;
+    }
+
+    th, td {
+        padding: 3px;
+    }
+
+    .download-btn {
+        font-size: 0.9rem;
+        padding: 12px;
     }
 }
