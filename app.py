@@ -1,144 +1,143 @@
-from flask import (
-    Flask,
-    request,
-    render_template,
-    send_file,
-    after_this_request
-)
+from flask import Flask, request, render_template, send_file
 from sbox_core import generate_sbox
 from crypto_tests import *
 from encryption import *
 from export import export_to_excel
-
-import os
-import atexit
+import io # Wajib untuk Vercel (In-Memory File)
 
 app = Flask(__name__)
 
-# ================= CONFIG =================
-EXPORT_FILE = "aes_export.xlsx"
+# ================= HELPER FUNCTION =================
+# Kita pisahkan logika enkripsi supaya bisa dipanggil ulang saat download
+def process_aes_logic(matrix_name, plaintext_input):
+    # 1. Generate S-box
+    sbox = generate_sbox(matrix_name)
 
-# ================= CLEANUP FUNCTION =================
-def cleanup_export_file():
-    if os.path.exists(EXPORT_FILE):
-        try:
-            os.remove(EXPORT_FILE)
-        except Exception as e:
-            print("Cleanup error:", e)
+    # 2. Generate Inverse S-box
+    inv_sbox = [0] * 256
+    for i in range(256):
+        inv_sbox[sbox[i]] = i
 
-# Cleanup at app start
-cleanup_export_file()
+    # 3. Key & Encryption
+    # Note: Di sistem stateless, Key akan berubah setiap request.
+    # Jika ingin key tetap, harus dikirim via parameter (opsional).
+    key = generate_key() 
+    pt = plaintext_input.encode().ljust(16, b'\x00')
 
-# Cleanup at normal app exit
-atexit.register(cleanup_export_file)
+    # Encrypt & Decrypt
+    ciphertext, enc_trace = aes_encrypt_trace(pt, key, sbox)
+    decrypted, dec_trace = aes_decrypt_trace(ciphertext, key, sbox)
+
+    # 4. Tables
+    sbox_table = [[f"{sbox[r * 16 + c]:02X}" for c in range(16)] for r in range(16)]
+    inv_sbox_table = [[f"{inv_sbox[r * 16 + c]:02X}" for c in range(16)] for r in range(16)]
+
+    # 5. Crypto Tests
+    crypto_result = {
+        "NL": nonlinearity(sbox),
+        "SAC": sac(sbox),
+        "BIC_NL": bic_nl(sbox),
+        "BIC_SAC": bic_sac(sbox),
+        "LAP": lap(sbox),
+        "DAP": dap(sbox),
+        "DU": differential_uniformity(sbox),
+        "AD": algebraic_degree(sbox),
+        "TO": transparency_order(sbox),
+        "CI": correlation_immunity(sbox),
+    }
+
+    # 6. Result Object
+    result = {
+        "Key": key.hex(),
+        "Plaintext": plaintext_input,
+        "Ciphertext": ciphertext.hex(),
+        "Decrypted": decrypted.rstrip(b"\x00").decode(errors="ignore"),
+        **crypto_result
+    }
+
+    return {
+        "result": result,
+        "sbox": sbox,
+        "inv_sbox": inv_sbox,
+        "enc_trace": enc_trace,
+        "dec_trace": dec_trace,
+        "crypto_result": crypto_result,
+        "sbox_table": sbox_table,
+        "inv_sbox_table": inv_sbox_table,
+        "key_bytes": key,
+        "ciphertext_bytes": ciphertext
+    }
 
 # ================= ROUTES =================
 @app.route("/", methods=["GET", "POST"])
 def index():
-    result = None
-    sbox_table = None
-    inv_sbox_table = None
-    enc_trace = None
-    dec_trace = None
+    context = {
+        "result": None,
+        "sbox_table": None,
+        "inv_sbox_table": None,
+        "enc_trace": None,
+        "dec_trace": None
+    }
 
     if request.method == "POST":
-        matrix = request.form["matrix"]
-        plaintext = request.form["plaintext"]
-
-        # ---- 1. Generate S-box ----
-        sbox = generate_sbox(matrix)
-
-        # ---- 2. Generate Inverse S-box ----
-        inv_sbox = [0] * 256
-        for i in range(256):
-            inv_sbox[sbox[i]] = i
-
-        # ---- 3. Key & Encryption ----
-        key = generate_key()
-        pt = plaintext.encode().ljust(16, b'\x00')
-
-        # Encrypt & Decrypt with Trace
-        ciphertext, enc_trace = aes_encrypt_trace(pt, key, sbox)
-        decrypted, dec_trace = aes_decrypt_trace(ciphertext, key, sbox)
-
-        # ---- 4. Build Tables (16x16) for Frontend ----
-        sbox_table = [
-            [f"{sbox[r * 16 + c]:02X}" for c in range(16)]
-            for r in range(16)
-        ]
+        matrix = request.form.get("matrix")
+        plaintext = request.form.get("plaintext")
         
-        inv_sbox_table = [
-            [f"{inv_sbox[r * 16 + c]:02X}" for c in range(16)]
-            for r in range(16)
-        ]
-
-        # ---- 5. Cryptographic Tests ----
-        crypto_result = {
-            "NL": nonlinearity(sbox),
-            "SAC": sac(sbox),
-            "BIC_NL": bic_nl(sbox),
-            "BIC_SAC": bic_sac(sbox),
-            "LAP": lap(sbox),
-            "DAP": dap(sbox),
-            "DU": differential_uniformity(sbox),
-            "AD": algebraic_degree(sbox),
-            "TO": transparency_order(sbox),
-            "CI": correlation_immunity(sbox),
-        }
-
-        # ---- 6. Result Object ----
-        result = {
-            "Key": key.hex(),
-            "Plaintext": plaintext,
-            "Ciphertext": ciphertext.hex(),
-            "Decrypted": decrypted.rstrip(b"\x00").decode(errors="ignore"),
-            **crypto_result
-        }
-
-        # ---- 7. Export Excel ----
-        export_to_excel(
-            filename=EXPORT_FILE,
-            affine_matrix=matrix,
-            key_hex=key.hex(),
-            plaintext=plaintext,
-            ciphertext_hex=ciphertext.hex(),
-            decrypted=result["Decrypted"],
-            sbox=sbox,
-            inv_sbox=inv_sbox,
-            enc_trace=enc_trace,
-            dec_trace=dec_trace,
-            crypto_result=crypto_result
-        )
+        if matrix and plaintext:
+            data = process_aes_logic(matrix, plaintext)
+            context.update({
+                "result": data["result"],
+                "sbox_table": data["sbox_table"],
+                "inv_sbox_table": data["inv_sbox_table"],
+                "enc_trace": data["enc_trace"],
+                "dec_trace": data["dec_trace"]
+            })
 
     return render_template(
         "index.html",
         matrices=["K4", "K44", "K81", "K111", "K128"],
-        result=result,
-        sbox_table=sbox_table,
-        inv_sbox_table=inv_sbox_table,
-        enc_trace=enc_trace,
-        dec_trace=dec_trace
+        **context
     )
 
 @app.route("/download")
 def download_excel():
-    if not os.path.exists(EXPORT_FILE):
-        return "File not found", 404
+    # Ambil parameter dari URL
+    matrix = request.args.get("matrix")
+    plaintext = request.args.get("plaintext")
 
-    @after_this_request
-    def remove_file(response):
-        try:
-            os.remove(EXPORT_FILE)
-        except Exception as e:
-            print("Cleanup error:", e)
-        return response
+    if not matrix or not plaintext:
+        return "Missing parameters. Please encrypt first.", 400
 
-    return send_file(
-        EXPORT_FILE,
-        as_attachment=True,
-        download_name="AES_Affine_Sbox_Result.xlsx"
+    # Proses ulang logikanya (karena kita gak bisa simpan file di server Vercel)
+    data = process_aes_logic(matrix, plaintext)
+
+    # Siapkan Memory Buffer
+    output = io.BytesIO()
+
+    # Panggil fungsi export dengan stream, bukan filename
+    export_to_excel(
+        output_stream=output,
+        affine_matrix=matrix,
+        key_hex=data["result"]["Key"],
+        plaintext=plaintext,
+        ciphertext_hex=data["result"]["Ciphertext"],
+        decrypted=data["result"]["Decrypted"],
+        sbox=data["sbox"],
+        inv_sbox=data["inv_sbox"],
+        enc_trace=data["enc_trace"],
+        dec_trace=data["dec_trace"],
+        crypto_result=data["crypto_result"]
     )
 
-# ================= MAIN =================
+    # Kembalikan pointer ke awal file
+    output.seek(0)
+
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='AES_Log_Result.xlsx'
+    )
+
 if __name__ == "__main__":
     app.run(debug=True)

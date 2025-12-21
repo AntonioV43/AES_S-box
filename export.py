@@ -1,13 +1,8 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-
 # ================= SANITIZER =================
 def sanitize_excel(value):
-    """
-    Remove illegal Excel characters (ASCII < 32).
-    Convert bytes to hex string.
-    """
     if value is None:
         return ""
     if isinstance(value, bytes):
@@ -15,10 +10,9 @@ def sanitize_excel(value):
     value = str(value)
     return "".join(c for c in value if ord(c) >= 32)
 
-
-# ================= EXPORT FUNCTION =================
+# ================= EXPORT FUNCTION (MODIFIED FOR VERCEL) =================
 def export_to_excel(
-    filename,
+    output_stream,  # Ganti filename jadi output_stream
     affine_matrix,
     key_hex,
     plaintext,
@@ -61,55 +55,36 @@ def export_to_excel(
 
     for r in range(16):
         for c in range(16):
-            ws.cell(
-                row=r+3,
-                column=c+2,
-                value=f"{sbox[r*16 + c]:02X}"
-            )
+            ws.cell(row=r+3, column=c+2, value=f"{sbox[r*16 + c]:02X}")
 
     # ================= Sheet 3 : Inverse S-box =================
     ws = wb.create_sheet("Inverse S-box")
     ws["A1"] = "Inverse S-box"
     ws["A1"].font = bold
 
-    # Header baris dan kolom (0-F)
     for i in range(16):
         ws.cell(row=2, column=i+2, value=f"{i:X}").font = bold
         ws.cell(row=i+3, column=1, value=f"{i:X}").font = bold
 
-    # Isi tabel 16x16
     for r in range(16):
         for c in range(16):
-            ws.cell(
-                row=r+3,
-                column=c+2,
-                value=f"{inv_sbox[r*16 + c]:02X}"
-            )
+            ws.cell(row=r+3, column=c+2, value=f"{inv_sbox[r*16 + c]:02X}")
 
     # ================= Sheet 4 : Encrypt Trace =================
     ws = wb.create_sheet("Encrypt Trace")
     row = 1
-
     for rnd in enc_trace:
         ws[f"A{row}"] = f"Round {rnd['round']}"
         ws[f"A{row}"].font = bold
         row += 1
-
         for step, state in rnd.items():
-            if step == "round":
-                continue
-
+            if step == "round": continue
             ws[f"A{row}"] = step
             ws[f"A{row}"].font = bold
             row += 1
-
             for r in state:
                 for c, v in enumerate(r):
-                    ws.cell(
-                        row=row,
-                        column=c+1,
-                        value=sanitize_excel(v)
-                    )
+                    ws.cell(row=row, column=c+1, value=sanitize_excel(v))
                 row += 1
             row += 1
         row += 1
@@ -117,27 +92,18 @@ def export_to_excel(
     # ================= Sheet 5 : Decrypt Trace =================
     ws = wb.create_sheet("Decrypt Trace")
     row = 1
-
     for rnd in dec_trace:
         ws[f"A{row}"] = f"Round {rnd['round']}"
         ws[f"A{row}"].font = bold
         row += 1
-
         for step, state in rnd.items():
-            if step == "round":
-                continue
-
+            if step == "round": continue
             ws[f"A{row}"] = step
             ws[f"A{row}"].font = bold
             row += 1
-
             for r in state:
                 for c, v in enumerate(r):
-                    ws.cell(
-                        row=row,
-                        column=c+1,
-                        value=sanitize_excel(v)
-                    )
+                    ws.cell(row=row, column=c+1, value=sanitize_excel(v))
                 row += 1
             row += 1
         row += 1
@@ -152,5 +118,5 @@ def export_to_excel(
         ws[f"A{i}"] = k
         ws[f"B{i}"] = sanitize_excel(v)
 
-    # ================= SAVE =================
-    wb.save(filename)
+    # ================= SAVE TO STREAM =================
+    wb.save(output_stream)
