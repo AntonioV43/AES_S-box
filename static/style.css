@@ -223,3 +223,114 @@ pre { background: #111; padding: 15px; border-left: 5px solid #00ff41; overflow-
     text-shadow: none; border-color: #00ffff; cursor: pointer;
 }
 .download-btn:active { transform: scale(0.95); box-shadow: 0 0 10px #00ffff; }
+/* ======================================================== */
+/* RESPONSIVE DESIGN (MOBILE FRIENDLY)                      */
+/* ======================================================== */
+
+@media screen and (max-width: 768px) {
+    
+    /* 1. CONTAINER UTAMA DIBUAT FLEKSIBEL */
+    .main-container {
+        width: 95%; /* Jangan 1000px, tapi 95% layar */
+        margin: 20px auto;
+        padding: 15px;
+    }
+
+    /* 2. HERO SECTION */
+    .hero-title {
+        font-size: 2.5rem; /* Kecilin judul */
+        line-height: 1.2;
+    }
+    .hero-subtitle {
+        font-size: 1rem;
+        padding: 0 10px;
+    }
+    
+    /* 3. FITUR GRID JADI 1 KOLOM */
+    .features-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+    .feature-card {
+        width: 100%; /* Kartu jadi lebar penuh */
+    }
+
+    /* 4. SLIDER TEAM (INI YANG SUSAH DI HP) */
+    .slider-container {
+        width: 95%; /* Lebar 95% */
+        height: 500px; /* Tinggi dikurangin */
+    }
+    
+    .slide .item:nth-child(1),
+    .slide .item:nth-child(2) {
+        /* Posisi Foto di HP */
+        top: 40%; 
+        left: 50%; /* Tengah */
+        width: 200px; 
+        height: 300px;
+        transform: translate(-50%, -50%);
+    }
+
+    .item .visual {
+        width: 100%; height: 100%;
+        border-radius: 15px;
+    }
+
+    /* Teks Tim di HP (Pindah ke Bawah Foto) */
+    .item .txt {
+        top: 75%; /* Turun ke bawah */
+        left: 50%;
+        transform: translate(-50%, 0);
+        width: 90%;
+        text-align: center;
+        padding: 0;
+    }
+    
+    .txt .name { font-size: 30px; }
+    .txt .des { font-size: 14px; margin-top: 5px; }
+
+    /* Tombol Navigasi Slider */
+    .button {
+        bottom: 20px;
+    }
+
+    /* Gantungan Icarus (Sembunyikan di HP biar ga ribet/nutupin) */
+    .hanging-icarus {
+        display: none; 
+    }
+
+    /* 5. TABLE & ENCRYPTION RESULT */
+    pre {
+        font-size: 10px; /* Kecilin font log */
+        overflow-x: scroll; /* Biar bisa discroll samping */
+        white-space: pre-wrap; /* Bungkus teks panjang */
+    }
+
+    .grid-container {
+        flex-direction: column; /* Tabel S-box jadi atas bawah */
+    }
+    
+    .sbox-wrapper {
+        width: 100%;
+        overflow-x: auto; /* Scroll samping tabel */
+    }
+    
+    table {
+        font-size: 10px; /* Huruf tabel kecil */
+    }
+    
+    th, td {
+        padding: 2px;
+    }
+
+    /* 6. ROUND TRACE (TABEL KECIL) */
+    .step-wrapper {
+        flex-wrap: nowrap;
+        overflow-x: scroll; /* Biar bisa digeser */
+        justify-content: flex-start;
+    }
+    .step-wrapper div {
+        min-width: 120px; /* Lebar minimum per step */
+        margin-right: 10px;
+    }
+}
